@@ -1,5 +1,6 @@
 from enum import Enum
 from src.leafnode import LeafNode
+import re
 
 class TextType(Enum):
     TEXT = "text"
@@ -10,7 +11,7 @@ class TextType(Enum):
     IMG = "image"
 
 class TextNode:
-    def __init__(self, text, text_type:TextType, url=None):
+    def __init__(self, text:str, text_type:TextType, url=None):
         self.text = text
         self.text_type = text_type
         self.url = url
@@ -23,7 +24,7 @@ class TextNode:
     def __repr__(self) -> str:
         return f"TextNode({self.text}, {self.text_type.value}, {self.url})"
     
-
+#converts a text_node into a leaf node - this will be called after the markdown is split
 def text_node_to_html_node(text_node:TextNode) -> LeafNode:
     match text_node.text_type:
         case TextType.TEXT:
@@ -41,7 +42,7 @@ def text_node_to_html_node(text_node:TextNode) -> LeafNode:
         case _:
             raise Exception(f"invalid text node type: {text_node.text_type}")
         
-# Takes a list of "old nodes", a delimiter, and a text type.
+# Takes a list of "old nodes" and a text type.
 # It should return a new list of nodes, where any "text" type nodes in the input list are (potentially)
 # split into multiple nodes based on the syntax. 
 def split_nodes(old_nodes:list[TextNode], text_type:TextType) -> list[TextNode]:
@@ -72,4 +73,72 @@ def split_nodes(old_nodes:list[TextNode], text_type:TextType) -> list[TextNode]:
             if len(s) != 0:
                 result.append(TextNode(s, TextType.TEXT) if is_text else TextNode(s, text_type))
             is_text = not is_text
+    return result
+
+# returns list of tuples (alt text, url)
+def extract_markdown_images(text:str) -> list[tuple]:
+    return re.findall(r"!\[([^\[\]]*)\]\(([^\(\)]*)\)", text)
+
+# returns list of tuples (anchor text, url)
+def extract_markdown_links(text:str) -> list[tuple]:
+    return re.findall(r"(?<!!)\[([^\[\]]*)\]\(([^\(\)]*)\)", text)
+
+# split raw markdown text into TextNodes based on images and links
+def split_nodes_image(old_nodes:list[TextNode]) -> list[TextNode]:
+    result = []
+
+    for node in old_nodes:
+        #pull out all the tuples for each node
+        img_tuples = extract_markdown_images(node.text)
+        #keep splitting the same string
+        node_text_string = node.text
+
+        for img in img_tuples:
+            #split in 2 sections
+            sections = node_text_string.split(f"![{img[0]}]({img[1]})", 1)
+            #add the first half
+            if len(sections[0]) > 0:
+                result.append(TextNode(sections[0], TextType.TEXT))
+            #add the img in the middle
+            result.append(TextNode(img[0], TextType.IMG, img[1]))
+            #update the string to split net iteration if there was still more text on the end
+            node_text_string = "" if len(sections) == 1 else sections[1]
+
+        #create another node if there was more text
+        if len(node_text_string) > 0:
+            result.append(TextNode(node_text_string, TextType.TEXT))
+
+    return result
+
+def split_nodes_link(old_nodes:list[TextNode]) -> list[TextNode]:
+    result = []
+
+    for node in old_nodes:
+        #pull out all the tuples for each node
+        link_tuples = extract_markdown_links(node.text)
+        #keep splitting the same string
+        node_text_string = node.text
+        
+        for link in link_tuples:
+            #split in 2 sections
+            sections = node_text_string.split(f"[{link[0]}]({link[1]})", 1)
+            #add the first half
+            if len(sections[0]) > 0:
+                result.append(TextNode(sections[0], TextType.TEXT))
+            #add the link in the middle
+            result.append(TextNode(link[0], TextType.LINK, link[1]))
+            #update the string to split net iteration if there was still more text on the end
+            node_text_string = "" if len(sections) == 1 else sections[1]
+
+        #create another node if there was more text
+        if len(node_text_string) > 0:
+            result.append(TextNode(node_text_string, TextType.TEXT))
+
+    return result
+
+def text_to_textnodes(text:str) -> list[TextNode]:
+    result = []
+
+
+
     return result
