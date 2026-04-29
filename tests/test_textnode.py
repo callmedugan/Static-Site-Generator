@@ -241,7 +241,6 @@ class TestTextNode(unittest.TestCase):
             "Click [here](url1) or [there](url2)",
             TextType.TEXT,
         )
-        print(split_nodes_link([node]))
         self.assertListEqual(
             [
                 TextNode("Click ", TextType.TEXT),
