@@ -11,7 +11,6 @@ class LeafNode(HTMLNode):
             raise ValueError("All leaf nodes must have a value.")
         if not self.tag:
             return str(self.value)
-
         #build tags
         if self.props:
             return f"<{self.tag} {self.props_to_html()}>{self.value}</{self.tag}>"
@@ -19,4 +18,4 @@ class LeafNode(HTMLNode):
     
     # called when trying to show a string representation of instance
     def __repr__(self) -> str:
-        return f"HTMLNode(Tag: {self.tag}, Value: {self.value}, Props: {self.props})"
+        return f"LeafNode(Tag: {self.tag}, Value: {self.value}, Props: {self.props})"
