@@ -1,4 +1,4 @@
-from htmlnode import HTMLNode
+from src.htmlnode import HTMLNode
 
 class LeafNode(HTMLNode):
     # requires tag and value, no children, and props optional
