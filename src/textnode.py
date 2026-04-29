@@ -22,6 +22,8 @@ class TextNode:
     
     # called when trying to show a string representation of instance
     def __repr__(self) -> str:
+        if not self.url:
+            return f"TextNode({self.text}, {self.text_type.value})"
         return f"TextNode({self.text}, {self.text_type.value}, {self.url})"
     
 #converts a text_node into a leaf node - this will be called after the markdown is split
@@ -42,21 +44,21 @@ def text_node_to_html_node(text_node:TextNode) -> LeafNode:
         case _:
             raise Exception(f"invalid text node type: {text_node.text_type}")
         
+
+text_type_char_dict = {
+    TextType.BOLD : "**",
+    TextType.ITALIC : "_",
+    TextType.CODE : "`"
+}
 # Takes a list of "old nodes" and a text type.
 # It should return a new list of nodes, where any "text" type nodes in the input list are (potentially)
 # split into multiple nodes based on the syntax. 
 def split_nodes(old_nodes:list[TextNode], text_type:TextType) -> list[TextNode]:
-    char_dict = {
-        TextType.BOLD : "**",
-        TextType.ITALIC : "_",
-        TextType.CODE : "`"
-    }
-
-    if text_type not in char_dict:
+    if text_type not in text_type_char_dict:
         raise ValueError(f"cannot split node with invalid text type of {text_type}")
     
     result = []
-    delimiter = char_dict[text_type]
+    delimiter = text_type_char_dict[text_type]
 
     # loop through the given list of nodes and start splitting
     for node in old_nodes:
@@ -88,6 +90,10 @@ def split_nodes_image(old_nodes:list[TextNode]) -> list[TextNode]:
     result = []
 
     for node in old_nodes:
+        #skip text nodes
+        if node.text_type != TextType.TEXT:
+            result.append(node)
+            continue
         #pull out all the tuples for each node
         img_tuples = extract_markdown_images(node.text)
         #keep splitting the same string
@@ -113,7 +119,11 @@ def split_nodes_image(old_nodes:list[TextNode]) -> list[TextNode]:
 def split_nodes_link(old_nodes:list[TextNode]) -> list[TextNode]:
     result = []
 
-    for node in old_nodes:
+    for node in old_nodes:    
+        #skip text nodes
+        if node.text_type != TextType.TEXT:
+            result.append(node)
+            continue
         #pull out all the tuples for each node
         link_tuples = extract_markdown_links(node.text)
         #keep splitting the same string
@@ -136,9 +146,13 @@ def split_nodes_link(old_nodes:list[TextNode]) -> list[TextNode]:
 
     return result
 
+# Time to put all the "splitting" functions together into a
+# function that can convert a raw string of markdown-flavored text into a list of TextNode object
 def text_to_textnodes(text:str) -> list[TextNode]:
-    result = []
-
-
-
+    result = [TextNode(text, TextType.TEXT)]
+    result = split_nodes(result, TextType.BOLD)
+    result = split_nodes(result, TextType.ITALIC)
+    result = split_nodes(result, TextType.CODE)
+    result = split_nodes_image(result)
+    result = split_nodes_link(result)
     return result

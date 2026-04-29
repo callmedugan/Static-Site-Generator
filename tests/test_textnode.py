@@ -285,6 +285,45 @@ class TestTextNode(unittest.TestCase):
             split_nodes_link([node])
         )
 
+    def test_text_to_textnodes_basic(self):
+        text = "This is **text** with an _italic_ word and a `code block` and an ![obi wan image](https://i.imgur.com/fJRm4Vk.jpeg) and a [link](https://boot.dev)"
+
+        self.assertListEqual(
+            [
+                TextNode("This is ", TextType.TEXT),
+                TextNode("text", TextType.BOLD),
+                TextNode(" with an ", TextType.TEXT),
+                TextNode("italic", TextType.ITALIC),
+                TextNode(" word and a ", TextType.TEXT),
+                TextNode("code block", TextType.CODE),
+                TextNode(" and an ", TextType.TEXT),
+                TextNode("obi wan image", TextType.IMG, "https://i.imgur.com/fJRm4Vk.jpeg"),
+                TextNode(" and a ", TextType.TEXT),
+                TextNode("link", TextType.LINK, "https://boot.dev"),
+            ],
+            text_to_textnodes(text)
+        )
+
+    def test_text_to_textnodes_complex(self):
+        text = "This is **bold**_italic_`code`![img](url)[link](url)"
+        nodes = text_to_textnodes(text)
+        expected = [
+            TextNode("This is ", TextType.TEXT),
+            TextNode("bold", TextType.BOLD),
+            TextNode("italic", TextType.ITALIC),
+            TextNode("code", TextType.CODE),
+            TextNode("img", TextType.IMG, "url"),
+            TextNode("link", TextType.LINK, "url"),
+        ]
+        self.assertListEqual(expected, nodes)
+
+    def test_text_to_textnodes_no_special(self):
+        # Tests that plain text remains a single text node
+        text = "Just plain text with no markdown."
+        nodes = text_to_textnodes(text)
+        expected = [TextNode("Just plain text with no markdown.", TextType.TEXT)]
+        self.assertListEqual(expected, nodes)
+
 
 
 if __name__ == "__main__":
