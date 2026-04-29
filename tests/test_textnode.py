@@ -1,6 +1,6 @@
 import unittest
 
-from src.textnode import TextNode, TextType, text_node_to_html_node
+from src.textnode import *
 
 
 class TestTextNode(unittest.TestCase):
@@ -70,6 +70,58 @@ class TestTextNode(unittest.TestCase):
             html_node.props, 
             {"src": "https://path/to/image.png", "alt": "Alt text description"}
         )
+
+    def test_split_nodes(self):
+        input_node = TextNode("This is text with a `code block` word", TextType.TEXT)
+        result = split_nodes([input_node], TextType.CODE)
+        expected = [
+            TextNode("This is text with a ", TextType.TEXT),
+            TextNode("code block", TextType.CODE),
+            TextNode(" word", TextType.TEXT),
+        ]
+        self.assertEqual(result, expected)
+
+    def test_split_nodes_multiple(self):
+        node = TextNode("This has **bold** and **more bold**", TextType.TEXT)
+        new_nodes = split_nodes([node], TextType.BOLD)
+        expected = [
+            TextNode("This has ", TextType.TEXT),
+            TextNode("bold", TextType.BOLD),
+            TextNode(" and ", TextType.TEXT),
+            TextNode("more bold", TextType.BOLD),
+        ]
+        self.assertEqual(new_nodes, expected)
+
+    def test_split_nodes_at_start(self):
+        node = TextNode("**Bold** at the start", TextType.TEXT)
+        new_nodes = split_nodes([node], TextType.BOLD)
+        expected = [
+            TextNode("Bold", TextType.BOLD),
+            TextNode(" at the start", TextType.TEXT),
+        ]
+        self.assertEqual(new_nodes, expected)
+
+    def test_split_nodes_italic(self):
+        node = TextNode("Normal, _italic_, normal", TextType.TEXT)
+        new_nodes = split_nodes([node], TextType.ITALIC)
+        expected = [
+            TextNode("Normal, ", TextType.TEXT),
+            TextNode("italic", TextType.ITALIC),
+            TextNode(", normal", TextType.TEXT),
+        ]
+        self.assertEqual(new_nodes, expected)
+
+    def test_split_nodes_unclosed_delimiter(self):
+        # This should raise an exception if the closing delimiter is missing
+        node = TextNode("This has an `unclosed code block", TextType.TEXT)
+        with self.assertRaises(Exception):
+            split_nodes([node], TextType.CODE)
+
+    def test_split_nodes_empty_text(self):
+        # Testing how it handles nodes with no text - it should remove them
+        node = TextNode("", TextType.TEXT)
+        new_nodes = split_nodes([node], TextType.CODE)
+        self.assertEqual(new_nodes, [])
 
 
 if __name__ == "__main__":
