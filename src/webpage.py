@@ -12,6 +12,7 @@ def extract_title(markdown:str) -> str:
         raise Exception("markdown does not contain h1 title")
 
 
+#needs to be recursiveeeee
 def generate_page(from_path="./content/index.md", template_path="./template.html", dest_path="./public/index.html"):
     # check if dirs exist
     from_dir = os.path.dirname(from_path)
