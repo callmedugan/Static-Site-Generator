@@ -1,4 +1,4 @@
-from src.htmlnode import HTMLNode
+from htmlnode import HTMLNode
 
 class ParentNode(HTMLNode):
     # tag and children not optional, no value, and props optional

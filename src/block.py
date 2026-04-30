@@ -1,8 +1,8 @@
 from enum import Enum
-from src.htmlnode import *
-from src.textnode import *
-from src.leafnode import *
-from src.parentnode import *
+from htmlnode import *
+from textnode import *
+from leafnode import *
+from parentnode import *
 
 class BlockType(Enum):
     PARAGRAPH = "paragraph"
@@ -29,7 +29,7 @@ class Block:
             self.type = BlockType.HEADING
             strip = text.lstrip('#')
             h_tag_num = len(text) - len(strip)
-            self.__html = strip
+            self.__html = strip.strip()
             self.__html_tag = "h" + str(h_tag_num)
 
         # code
@@ -123,7 +123,12 @@ def markdown_to_html_node(markdown:str) -> ParentNode:
             for child_text in new_block_html["children"]:
                 child_text_nodes = text_to_textnodes(child_text)
                 for c in child_text_nodes:
-                    child_nodes.append(text_node_to_html_node(c))
+                    new_leaf_node = text_node_to_html_node(c)
+                    # spaghetti code ugh
+                    if new_leaf_node.tag != new_block_html["children_tag"]:
+                        child_nodes.append(ParentNode(new_block_html["children_tag"],[new_leaf_node]))
+                    else:
+                        child_nodes.append(new_leaf_node)
             elements.append(ParentNode(new_block_html["tag"], child_nodes))
 
         # else just build the single element

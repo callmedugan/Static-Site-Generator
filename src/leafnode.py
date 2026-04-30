@@ -1,4 +1,4 @@
-from src.htmlnode import HTMLNode
+from htmlnode import HTMLNode
 
 class LeafNode(HTMLNode):
     # requires tag and value, no children, and props optional
@@ -7,8 +7,8 @@ class LeafNode(HTMLNode):
 
     # renders a leaf node as an html string
     def to_html(self):
-        if not self.value:
-            raise ValueError("All leaf nodes must have a value.")
+        if not self.value and self.tag != "img":
+            raise ValueError("All leaf nodes must have a value: " + str(self))
         if not self.tag:
             return str(self.value)
         #build tags
