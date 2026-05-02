@@ -38,8 +38,8 @@ def generate_page(from_path, template_path, dest_path, base_path):
     # replace
     write_contents = template_contents.replace("{{ Title }}", title).replace("{{ Content }}", content)
     # replace the base paths
-    write_contents.replace('href="/', f'href="{base_path}')
-    write_contents.replace('src="/', f'src="{base_path}')
+    write_contents = write_contents.replace('href="/', f'href="{base_path}')
+    write_contents = write_contents.replace('src="/', f'src="{base_path}')
 
     # write    
     # make dest if not made
