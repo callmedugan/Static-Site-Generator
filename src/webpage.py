@@ -13,7 +13,7 @@ def extract_title(markdown:str) -> str:
 
 
 #needs to be recursiveeeee
-def generate_page(from_path="./content/index.md", template_path="./template.html", dest_path="./public/index.html"):
+def generate_page(from_path, template_path, dest_path, base_path):
     # check if dirs exist
     from_dir = os.path.dirname(from_path)
     template_dir = os.path.dirname(template_path)
@@ -37,6 +37,9 @@ def generate_page(from_path="./content/index.md", template_path="./template.html
 
     # replace
     write_contents = template_contents.replace("{{ Title }}", title).replace("{{ Content }}", content)
+    # replace the base paths
+    write_contents.replace('href="/', f'href="{base_path}')
+    write_contents.replace('src="/', f'src="{base_path}')
 
     # write    
     # make dest if not made

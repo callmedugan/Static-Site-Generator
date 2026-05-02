@@ -6,13 +6,15 @@ import sys
 def main():
     from_folder="./content"
     template_file="./template.html"
-    dest_folder="./public"
+    dest_folder="./docs"
+    
+    resources_source_folder = "./static"
 
-    basepath = "/" if len(sys.argv) <= 1 else sys.argv[1]
-    print(basepath)
+    # use cli arg to change the url base path
+    base_path = "/" if len(sys.argv) <= 1 else sys.argv[1]
 
     #copies over the resources
-    shutil.copytree("./static", "./public", dirs_exist_ok=True)
+    shutil.copytree(resources_source_folder, dest_folder, dirs_exist_ok=True)
 
     # find each file in the content folder and generate a page and copy it over
     for md_file in Path(from_folder).rglob('*md'):
@@ -26,6 +28,6 @@ def main():
             new_root = split[1].removeprefix(from_folder).lstrip("./")
             #change the file type and add the new parent folder name
             dest = dest_folder + "/" + new_root.removesuffix(".md") + ".html"
-            generate_page(md_file_path, template_file, dest)
+            generate_page(md_file_path, template_file, dest, base_path)
 
 main()
